@@ -47,11 +47,14 @@ looker.plugins.visualizations.add({
 
     // Process each row of data to create polygons
     data.forEach(function(row) {
-      var coordinates = JSON.parse(row['your_polygon_column'].value);
-      var latlngs = coordinates.map(function(coord) {
-        return [coord[1], coord[0]]; // Leaflet expects [lat, lng]
-      });
-      L.polygon(latlngs, { color: config.color }).addTo(this._map);
+      var polygonData = row['your_polygon_column'];
+      if (polygonData && polygonData.value) {
+        var coordinates = JSON.parse(polygonData.value);
+        var latlngs = coordinates.map(function(coord) {
+          return [coord[1], coord[0]]; // Leaflet expects [lat, lng]
+        });
+        L.polygon(latlngs, { color: config.color }).addTo(this._map);
+      }
     }, this);
   }
 });
