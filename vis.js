@@ -11,10 +11,7 @@ looker.plugins.visualizations.add({
   },
   create: function(element, config) {
     // Create the container element for the map
-    element.innerHTML = `
-      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-      <div id="map" style="width: 100%; height: 100%;"></div>
-    `;
+    element.innerHTML = "<div id='map' style='width: 100%; height: 100%;'></div>";
   },
   update: function(data, element, config, queryResponse, details) {
     // Ensure the data is formatted correctly
@@ -24,17 +21,11 @@ looker.plugins.visualizations.add({
     var script = document.createElement("script");
     script.src = "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js";
     script.onload = function() {
-      // Check if the map already exists
-      if (window.map) {
-        window.map.remove();
-      }
-
-      // Initialize the map
-      window.map = L.map("map").setView([56.0, 10.5], 10); // Center map
+      var map = L.map("map").setView([56.0, 10.5], 10); // Center map
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-      }).addTo(window.map);
+      }).addTo(map);
 
       // Process each row of data to create polygons
       data.forEach(function(row) {
@@ -42,7 +33,7 @@ looker.plugins.visualizations.add({
         var latlngs = coordinates.map(function(coord) {
           return [coord[1], coord[0]]; // Leaflet expects [lat, lng]
         });
-        L.polygon(latlngs, { color: config.color }).addTo(window.map);
+        L.polygon(latlngs, { color: config.color }).addTo(map);
       });
     };
     document.head.appendChild(script);
