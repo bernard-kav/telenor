@@ -32,6 +32,9 @@ looker.plugins.visualizations.add({
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
       }).addTo(window.map);
+    } else {
+      // If map already exists, just invalidate its size (useful if container size has changed)
+      window.map.invalidateSize();
     }
 
     // Remove existing polygon layers
