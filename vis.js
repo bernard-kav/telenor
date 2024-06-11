@@ -4,7 +4,7 @@ looker.plugins.visualizations.add({
   options: {
     polygonColor: {
       type: "string",
-      label: "Polygon Color",
+      label: "Polygon Fill Color",
       display: "color",
       default: "#ff0000"
     },
@@ -19,6 +19,14 @@ looker.plugins.visualizations.add({
       label: "Polygon Line Width",
       display: "number",
       default: 2
+    },
+    polygonFillOpacity: {
+      type: "number",
+      label: "Polygon Fill Opacity",
+      display: "number",
+      default: 0.5,
+      min: 0,
+      max: 1
     },
     labelFontSize: {
       type: "number",
@@ -44,7 +52,6 @@ looker.plugins.visualizations.add({
     }
   },
   create: function(element, config) {
-    console.log("Creating visualization element");
     // Create the container element for the map
     element.innerHTML = "<div id='map' style='width: 100%; height: 100%;'></div>";
 
@@ -53,7 +60,6 @@ looker.plugins.visualizations.add({
     leafletScript.src = "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js";
     leafletScript.async = true;
     leafletScript.onload = () => {
-      console.log("Leaflet.js loaded");
       this._leafletLoaded = true;
       if (this._pendingUpdate) {
         this.update(this._pendingUpdate.data, this._pendingUpdate.element, this._pendingUpdate.config, this._pendingUpdate.queryResponse, this._pendingUpdate.details);
@@ -77,7 +83,6 @@ looker.plugins.visualizations.add({
     googleMapsScript.async = true;
     googleMapsScript.defer = true;
     googleMapsScript.onload = () => {
-      console.log("Google Maps API loaded");
       this._googleMapsLoaded = true;
       if (this._pendingUpdate) {
         this.update(this._pendingUpdate.data, this._pendingUpdate.element, this._pendingUpdate.config, this._pendingUpdate.queryResponse, this._pendingUpdate.details);
@@ -95,9 +100,6 @@ looker.plugins.visualizations.add({
       return;
     }
 
-    console.log("Updating visualization with data:", data);
-    console.log("Google Maps API Key:", config.googleMapsApiKey);
-
     // Ensure the data is formatted correctly
     if (!data || data.length === 0) {
       console.warn("No data available");
@@ -107,10 +109,8 @@ looker.plugins.visualizations.add({
     // Initialize the map
     var mapContainer = element.querySelector('#map');
     if (this._map) {
-      console.log("Removing existing map");
       this._map.remove();
     }
-    console.log("Creating new map instance");
 
     this._map = L.map(mapContainer).setView([56.0, 10.5], 10); // Center map
 
@@ -138,19 +138,17 @@ looker.plugins.visualizations.add({
           return [coord[1], coord[0]]; // Leaflet expects [lat, lng]
         });
         var polygon = L.polygon(latlngs, {
-          color: config.polygonColor,
+          color: config.polygonLineColor,
           weight: config.polygonLineWidth,
-          opacity: 1,
-          fillOpacity: 0.5,
           fillColor: config.polygonColor,
-          stroke: true,
-          fill: true
+          fillOpacity: config.polygonFillOpacity,
+          opacity: 1
         }).addTo(this._map);
 
         // Add label to the polygon if showLabels is true
         if (config.showLabels && polygonName && polygonName.value) {
           var centroid = getCentroid(latlngs);
-          L.marker(centroid, { opacity: 0 }).bindTooltip(polygonName.value, { permanent: true, direction: 'center', className: 'polygon-label' }).addTo(this._map);
+          L.marker(centroid, { opacity: 0, interactive: false }).bindTooltip(polygonName.value, { permanent: true, direction: 'center', className: 'polygon-label' }).addTo(this._map);
 
           // Add hover tooltip
           polygon.bindTooltip(polygonName.value, { sticky: true });
