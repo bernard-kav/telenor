@@ -8,6 +8,18 @@ looker.plugins.visualizations.add({
       display: "color",
       default: "#ff0000"
     },
+    polygonLineColor: {
+      type: "string",
+      label: "Polygon Line Color",
+      display: "color",
+      default: "#000000"
+    },
+    polygonLineWidth: {
+      type: "number",
+      label: "Polygon Line Width",
+      display: "number",
+      default: 2
+    },
     labelFontSize: {
       type: "number",
       label: "Label Font Size",
@@ -125,7 +137,15 @@ looker.plugins.visualizations.add({
         var latlngs = coordinates.map(function(coord) {
           return [coord[1], coord[0]]; // Leaflet expects [lat, lng]
         });
-        var polygon = L.polygon(latlngs, { color: config.polygonColor }).addTo(this._map);
+        var polygon = L.polygon(latlngs, {
+          color: config.polygonColor,
+          weight: config.polygonLineWidth,
+          opacity: 1,
+          fillOpacity: 0.5,
+          fillColor: config.polygonColor,
+          stroke: true,
+          fill: true
+        }).addTo(this._map);
 
         // Add label to the polygon if showLabels is true
         if (config.showLabels && polygonName && polygonName.value) {
