@@ -1,12 +1,18 @@
 looker.plugins.visualizations.add({
-  id: "custom_map_polygon",
-  label: "Custom Map with Polygons",
+  id: "custom_map_polygon_points",
+  label: "Custom Map with Polygons, Points, and Labels",
   options: {
-    color: {
+    polygonColor: {
       type: "string",
       label: "Polygon Color",
       display: "color",
       default: "#ff0000"
+    },
+    pointColor: {
+      type: "string",
+      label: "Point Color",
+      display: "color",
+      default: "#0000ff"
     }
   },
   create: function(element, config) {
@@ -65,10 +71,12 @@ looker.plugins.visualizations.add({
       attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
     }).addTo(this._map);
 
-    // Process each row of data to create polygons
+    // Process each row of data to create polygons, points, and labels
     data.forEach(function(row) {
-      console.log("Processing row:", row);
+      // Process polygons
       var polygonData = row['local_area_polygons.ttlocalarea_poly'];
+      var polygonName = row['ttlocalarea']; // Name of the polygon
+
       if (polygonData) {
         console.log("Found polygonData:", polygonData);
         if (polygonData.value) {
@@ -77,13 +85,48 @@ looker.plugins.visualizations.add({
             return [coord[1], coord[0]]; // Leaflet expects [lat, lng]
           });
           console.log("Adding polygon with coordinates:", latlngs);
-          L.polygon(latlngs, { color: config.color }).addTo(this._map);
+          var polygon = L.polygon(latlngs, { color: config.polygonColor }).addTo(this._map);
+
+          // Add label to the polygon
+          if (polygonName && polygonName.value) {
+            var centroid = getCentroid(latlngs);
+            L.marker(centroid, { opacity: 0 }).bindTooltip(polygonName.value, { permanent: true, direction: 'center', className: 'polygon-label' }).addTo(this._map);
+          }
         } else {
           console.warn("polygonData.value is undefined");
         }
       } else {
         console.warn("row['local_area_polygons.ttlocalarea_poly'] is undefined");
       }
+
+      // Process points
+      var pointData = row['your_point_column']; // Replace 'your_point_column' with the actual field name for points
+      if (pointData) {
+        console.log("Found pointData:", pointData);
+        if (pointData.value) {
+          var pointCoordinates = JSON.parse(pointData.value);
+          pointCoordinates.forEach(function(point) {
+            var latlng = [point[1], point[0]]; // Leaflet expects [lat, lng]
+            console.log("Adding point with coordinates:", latlng);
+            L.circleMarker(latlng, { color: config.pointColor }).addTo(this._map);
+          }, this);
+        } else {
+          console.warn("pointData.value is undefined");
+        }
+      } else {
+        console.warn("row['your_point_column'] is undefined");
+      }
     }, this);
   }
 });
+
+// Function to calculate the centroid of a polygon
+function getCentroid(latlngs) {
+  var latSum = 0;
+  var lngSum = 0;
+  latlngs.forEach(function(latlng) {
+    latSum += latlng[0];
+    lngSum += latlng[1];
+  });
+  return [latSum / latlngs.length, lngSum / latlngs.length];
+}
