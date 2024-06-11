@@ -14,17 +14,15 @@ looker.plugins.visualizations.add({
       display: "number",
       default: 14
     },
-    mapType: {
-      type: "string",
-      label: "Map Type",
+    showLabels: {
+      type: "boolean",
+      label: "Show Labels",
       display: "select",
       values: [
-        { "Roadmap": "roadmap" },
-        { "Satellite": "satellite" },
-        { "Hybrid": "hybrid" },
-        { "Terrain": "terrain" }
+        { "Show": true },
+        { "Hide": false }
       ],
-      default: "roadmap"
+      default: true
     },
     googleMapsApiKey: {
       type: "string",
@@ -86,7 +84,6 @@ looker.plugins.visualizations.add({
     }
 
     console.log("Updating visualization with data:", data);
-    console.log("Map Type:", config.mapType);
     console.log("Google Maps API Key:", config.googleMapsApiKey);
 
     // Ensure the data is formatted correctly
@@ -106,7 +103,7 @@ looker.plugins.visualizations.add({
     this._map = L.map(mapContainer).setView([56.0, 10.5], 10); // Center map
 
     // Use Google Maps tile layer
-    const tileLayer = L.tileLayer(`https://{s}.google.com/vt/lyrs=${config.mapType}&x={x}&y={y}&z={z}&key=${config.googleMapsApiKey}`, {
+    const tileLayer = L.tileLayer(`https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${config.googleMapsApiKey}`, {
       maxZoom: 20,
       subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     });
@@ -130,8 +127,8 @@ looker.plugins.visualizations.add({
         });
         var polygon = L.polygon(latlngs, { color: config.polygonColor }).addTo(this._map);
 
-        // Add label to the polygon
-        if (polygonName && polygonName.value) {
+        // Add label to the polygon if showLabels is true
+        if (config.showLabels && polygonName && polygonName.value) {
           var centroid = getCentroid(latlngs);
           L.marker(centroid, { opacity: 0 }).bindTooltip(polygonName.value, { permanent: true, direction: 'center', className: 'polygon-label' }).addTo(this._map);
 
