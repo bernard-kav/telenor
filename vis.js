@@ -69,7 +69,10 @@ looker.plugins.visualizations.add({
     data.forEach(function(row) {
       // Process polygons
       var polygonData = row['local_area_polygons.ttlocalarea_poly'];
-      var polygonName = row['ttlocalarea']; // Name of the polygon
+      var polygonName = row['local_area_polygons.ttlocalarea']; // Name of the polygon
+
+      console.log("Processing row:", row);
+      console.log("polygonName:", polygonName);
 
       if (polygonData) {
         console.log("Found polygonData:", polygonData);
@@ -87,7 +90,7 @@ looker.plugins.visualizations.add({
             var centroid = getCentroid(latlngs);
             L.marker(centroid, { opacity: 0 }).bindTooltip(polygonName.value, { permanent: true, direction: 'center', className: 'polygon-label' }).addTo(this._map);
           } else {
-            console.warn("polygonName.value is undefined");
+            console.warn("polygonName or polygonName.value is undefined");
           }
         } else {
           console.warn("polygonData.value is undefined");
