@@ -20,37 +20,31 @@ looker.plugins.visualizations.add({
     // Ensure the data is formatted correctly
     if (!data || data.length === 0) return;
 
-    // Check if Leaflet is loaded
-    if (typeof L === 'undefined') {
-      console.error('Leaflet library is not loaded.');
-      return;
-    }
+    // Load the Leaflet.js library for mapping
+    var script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js";
+    script.onload = function() {
+      // Check if the map already exists
+      if (window.map) {
+        window.map.remove();
+      }
 
-    // Initialize the map only if it hasn't been initialized yet
-    if (!window.map) {
+      // Initialize the map
       window.map = L.map("map").setView([56.0, 10.5], 10); // Center map
+
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
       }).addTo(window.map);
-    } else {
-      // If map already exists, just invalidate its size (useful if container size has changed)
-      window.map.invalidateSize();
-    }
 
-    // Remove existing polygon layers
-    window.map.eachLayer(function(layer) {
-      if (layer instanceof L.Polygon) {
-        window.map.removeLayer(layer);
-      }
-    });
-
-    // Process each row of data to create polygons
-    data.forEach(function(row) {
-      var coordinates = JSON.parse(row['your_polygon_column'].value);
-      var latlngs = coordinates.map(function(coord) {
-        return [coord[1], coord[0]]; // Leaflet expects [lat, lng]
+      // Process each row of data to create polygons
+      data.forEach(function(row) {
+        var coordinates = JSON.parse(row['your_polygon_column'].value);
+        var latlngs = coordinates.map(function(coord) {
+          return [coord[1], coord[0]]; // Leaflet expects [lat, lng]
+        });
+        L.polygon(latlngs, { color: config.color }).addTo(window.map);
       });
-      L.polygon(latlngs, { color: config.color }).addTo(window.map);
-    });
+    };
+    document.head.appendChild(script);
   }
 });
