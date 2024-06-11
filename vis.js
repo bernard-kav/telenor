@@ -67,9 +67,10 @@ looker.plugins.visualizations.add({
 
     // Process each row of data to create polygons
     data.forEach(function(row) {
-      var polygonData = row['your_polygon_column'];
+      console.log("Processing row:", row);
+      var polygonData = row['local_area_polygons.ttlocalarea_poly'];
       if (polygonData) {
-        console.log("Processing row:", polygonData);
+        console.log("Found polygonData:", polygonData);
         if (polygonData.value) {
           var coordinates = JSON.parse(polygonData.value);
           var latlngs = coordinates.map(function(coord) {
@@ -81,7 +82,7 @@ looker.plugins.visualizations.add({
           console.warn("polygonData.value is undefined");
         }
       } else {
-        console.warn("row['your_polygon_column'] is undefined");
+        console.warn("row['local_area_polygons.ttlocalarea_poly'] is undefined");
       }
     }, this);
   }
