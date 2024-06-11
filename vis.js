@@ -37,9 +37,10 @@ looker.plugins.visualizations.add({
     // Create the container element for the map
     element.innerHTML = "<div id='map' style='width: 100%; height: 100%;'></div>";
 
-    // Include Leaflet.js library
+    // Load Leaflet.js library
     var leafletScript = document.createElement("script");
     leafletScript.src = "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js";
+    leafletScript.async = true;
     leafletScript.onload = () => {
       this._leafletLoaded = true;
       if (this._pendingUpdate) {
@@ -52,22 +53,31 @@ looker.plugins.visualizations.add({
     };
     document.head.appendChild(leafletScript);
 
-    // Include Leaflet.css
+    // Load Leaflet.css
     var leafletStyle = document.createElement("link");
     leafletStyle.rel = "stylesheet";
     leafletStyle.href = "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css";
     document.head.appendChild(leafletStyle);
 
-    // Include Google Maps library
+    // Load Google Maps library asynchronously
     var googleMapsScript = document.createElement("script");
     googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${config.googleMapsApiKey}`;
+    googleMapsScript.async = true;
+    googleMapsScript.defer = true;
+    googleMapsScript.onload = () => {
+      this._googleMapsLoaded = true;
+      if (this._pendingUpdate) {
+        this.update(this._pendingUpdate.data, this._pendingUpdate.element, this._pendingUpdate.config, this._pendingUpdate.queryResponse, this._pendingUpdate.details);
+        this._pendingUpdate = null;
+      }
+    };
     googleMapsScript.onerror = () => {
       console.error("Failed to load Google Maps");
     };
     document.head.appendChild(googleMapsScript);
   },
   update: function(data, element, config, queryResponse, details) {
-    if (!this._leafletLoaded) {
+    if (!this._leafletLoaded || !this._googleMapsLoaded) {
       this._pendingUpdate = { data, element, config, queryResponse, details };
       return;
     }
@@ -88,7 +98,9 @@ looker.plugins.visualizations.add({
     L.tileLayer(`https://{s}.google.com/vt/lyrs=${config.mapType}&x={x}&y={y}&z={z}&key=${config.googleMapsApiKey}`, {
       maxZoom: 20,
       subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    }).addTo(this._map);
+    }).addTo(this._map).on('tileerror', function(error) {
+      console.error('Failed to load Google Maps tiles:', error);
+    });
 
     // Process each row of data to create polygons and labels
     data.forEach(function(row) {
