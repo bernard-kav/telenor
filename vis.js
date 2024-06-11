@@ -11,11 +11,20 @@ looker.plugins.visualizations.add({
   },
   create: function(element, config) {
     // Create the container element for the map
-    element.innerHTML = `<div id="map" style="width: 100%; height: 100%;"></div>`;
+    element.innerHTML = `
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+      <div id="map" style="width: 100%; height: 100%;"></div>
+    `;
   },
   update: function(data, element, config, queryResponse, details) {
     // Ensure the data is formatted correctly
     if (!data || data.length === 0) return;
+
+    // Check if Leaflet is loaded
+    if (typeof L === 'undefined') {
+      console.error('Leaflet library is not loaded.');
+      return;
+    }
 
     // Initialize the map only if it hasn't been initialized yet
     if (!window.map) {
@@ -25,8 +34,8 @@ looker.plugins.visualizations.add({
       }).addTo(window.map);
     }
 
-    // Clear existing layers
-    window.map.eachLayer(function (layer) {
+    // Remove existing polygon layers
+    window.map.eachLayer(function(layer) {
       if (layer instanceof L.Polygon) {
         window.map.removeLayer(layer);
       }
