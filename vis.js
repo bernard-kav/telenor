@@ -100,7 +100,7 @@ looker.plugins.visualizations.add({
       }
 
       // Process points
-      var pointData = row['your_point_column']; // Replace 'your_point_column' with the actual field name for points
+      var pointData = row['location']; // Points column
       if (pointData) {
         console.log("Found pointData:", pointData);
         if (pointData.value) {
@@ -114,7 +114,7 @@ looker.plugins.visualizations.add({
           console.warn("pointData.value is undefined");
         }
       } else {
-        console.warn("row['your_point_column'] is undefined");
+        console.warn("row['location'] is undefined");
       }
     }, this);
   }
