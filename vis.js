@@ -7,6 +7,12 @@ looker.plugins.visualizations.add({
       label: "Polygon Color",
       display: "color",
       default: "#ff0000"
+    },
+    googleMapsApiKey: {
+      type: "string",
+      label: "Google Maps API Key",
+      display: "text",
+      default: ""
     }
   },
   create: function(element, config) {
@@ -36,6 +42,14 @@ looker.plugins.visualizations.add({
     leafletStyle.rel = "stylesheet";
     leafletStyle.href = "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css";
     document.head.appendChild(leafletStyle);
+
+    // Include Google Maps library
+    var googleMapsScript = document.createElement("script");
+    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${config.googleMapsApiKey}`;
+    googleMapsScript.onerror = () => {
+      console.error("Failed to load Google Maps");
+    };
+    document.head.appendChild(googleMapsScript);
   },
   update: function(data, element, config, queryResponse, details) {
     if (!this._leafletLoaded) {
@@ -59,17 +73,20 @@ looker.plugins.visualizations.add({
       this._map.remove();
     }
     console.log("Creating new map instance");
+
+    // Use Google Maps tile layer
     this._map = L.map(mapContainer).setView([56.0, 10.5], 10); // Center map
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    L.tileLayer(`https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${config.googleMapsApiKey}`, {
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     }).addTo(this._map);
 
     // Process each row of data to create polygons and labels
     data.forEach(function(row) {
       // Process polygons
       var polygonData = row['local_area_polygons.ttlocalarea_poly'];
-      var polygonName = row['local_area_polygons.ttlocalarea']; // Name of the polygon
+      var polygonName = row['ttlocalarea']; // Name of the polygon
 
       console.log("Processing row:", row);
       console.log("polygonName:", polygonName);
@@ -112,3 +129,17 @@ function getCentroid(latlngs) {
   });
   return [latSum / latlngs.length, lngSum / latlngs.length];
 }
+
+// CSS for the labels to remove the background
+const style = document.createElement('style');
+style.type = 'text/css';
+style.innerHTML = `
+  .polygon-label {
+    background: none !important;
+    border: none !important;
+    color: black !important;
+    font-weight: bold !important;
+    font-size: 14px !important;
+  }
+`;
+document.getElementsByTagName('head')[0].appendChild(style);
