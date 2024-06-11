@@ -16,7 +16,13 @@ looker.plugins.visualizations.add({
     // Include Leaflet.js library
     var leafletScript = document.createElement("script");
     leafletScript.src = "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js";
-    leafletScript.onload = () => this._leafletLoaded = true;
+    leafletScript.onload = () => {
+      this._leafletLoaded = true;
+      if (this._pendingUpdate) {
+        this.update(this._pendingUpdate.data, this._pendingUpdate.element, this._pendingUpdate.config, this._pendingUpdate.queryResponse, this._pendingUpdate.details);
+        this._pendingUpdate = null;
+      }
+    };
     document.head.appendChild(leafletScript);
 
     // Include Leaflet.css
@@ -28,6 +34,7 @@ looker.plugins.visualizations.add({
   update: function(data, element, config, queryResponse, details) {
     if (!this._leafletLoaded) {
       console.warn("Leaflet.js not yet loaded");
+      this._pendingUpdate = { data, element, config, queryResponse, details };
       return;
     }
 
