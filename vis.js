@@ -86,7 +86,7 @@ looker.plugins.visualizations.add({
     data.forEach(function(row) {
       // Process polygons
       var polygonData = row['local_area_polygons.ttlocalarea_poly'];
-      var polygonName = row['ttlocalarea']; // Name of the polygon
+      var polygonName = row['local_area_polygons.ttlocalarea']; // Name of the polygon
 
       console.log("Processing row:", row);
       console.log("polygonName:", polygonName);
