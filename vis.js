@@ -10,6 +10,7 @@ looker.plugins.visualizations.add({
     }
   },
   create: function(element, config) {
+    console.log("Creating visualization element");
     // Create the container element for the map
     element.innerHTML = "<div id='map' style='width: 100%; height: 100%;'></div>";
 
@@ -17,11 +18,16 @@ looker.plugins.visualizations.add({
     var leafletScript = document.createElement("script");
     leafletScript.src = "https://unpkg.com/leaflet@1.7.1/dist/leaflet.js";
     leafletScript.onload = () => {
+      console.log("Leaflet.js loaded");
       this._leafletLoaded = true;
       if (this._pendingUpdate) {
+        console.log("Running pending update");
         this.update(this._pendingUpdate.data, this._pendingUpdate.element, this._pendingUpdate.config, this._pendingUpdate.queryResponse, this._pendingUpdate.details);
         this._pendingUpdate = null;
       }
+    };
+    leafletScript.onerror = () => {
+      console.error("Failed to load Leaflet.js");
     };
     document.head.appendChild(leafletScript);
 
@@ -38,14 +44,21 @@ looker.plugins.visualizations.add({
       return;
     }
 
+    console.log("Updating visualization with data:", data);
+
     // Ensure the data is formatted correctly
-    if (!data || data.length === 0) return;
+    if (!data || data.length === 0) {
+      console.warn("No data available");
+      return;
+    }
 
     // Initialize the map
     var mapContainer = element.querySelector('#map');
     if (this._map) {
+      console.log("Removing existing map");
       this._map.remove();
     }
+    console.log("Creating new map instance");
     this._map = L.map(mapContainer).setView([56.0, 10.5], 10); // Center map
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -55,12 +68,20 @@ looker.plugins.visualizations.add({
     // Process each row of data to create polygons
     data.forEach(function(row) {
       var polygonData = row['your_polygon_column'];
-      if (polygonData && polygonData.value) {
-        var coordinates = JSON.parse(polygonData.value);
-        var latlngs = coordinates.map(function(coord) {
-          return [coord[1], coord[0]]; // Leaflet expects [lat, lng]
-        });
-        L.polygon(latlngs, { color: config.color }).addTo(this._map);
+      if (polygonData) {
+        console.log("Processing row:", polygonData);
+        if (polygonData.value) {
+          var coordinates = JSON.parse(polygonData.value);
+          var latlngs = coordinates.map(function(coord) {
+            return [coord[1], coord[0]]; // Leaflet expects [lat, lng]
+          });
+          console.log("Adding polygon with coordinates:", latlngs);
+          L.polygon(latlngs, { color: config.color }).addTo(this._map);
+        } else {
+          console.warn("polygonData.value is undefined");
+        }
+      } else {
+        console.warn("row['your_polygon_column'] is undefined");
       }
     }, this);
   }
