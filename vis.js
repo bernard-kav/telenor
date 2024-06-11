@@ -13,6 +13,24 @@ looker.plugins.visualizations.add({
       label: "Label Font Size",
       display: "number",
       default: 14
+    },
+    mapType: {
+      type: "string",
+      label: "Map Type",
+      display: "select",
+      values: [
+        { "Roadmap": "roadmap" },
+        { "Satellite": "satellite" },
+        { "Hybrid": "hybrid" },
+        { "Terrain": "terrain" }
+      ],
+      default: "roadmap"
+    },
+    googleMapsApiKey: {
+      type: "string",
+      label: "Google Maps API Key",
+      display: "text",
+      default: ""
     }
   },
   create: function(element, config) {
@@ -39,6 +57,14 @@ looker.plugins.visualizations.add({
     leafletStyle.rel = "stylesheet";
     leafletStyle.href = "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css";
     document.head.appendChild(leafletStyle);
+
+    // Include Google Maps library
+    var googleMapsScript = document.createElement("script");
+    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${config.googleMapsApiKey}`;
+    googleMapsScript.onerror = () => {
+      console.error("Failed to load Google Maps");
+    };
+    document.head.appendChild(googleMapsScript);
   },
   update: function(data, element, config, queryResponse, details) {
     if (!this._leafletLoaded) {
@@ -58,8 +84,10 @@ looker.plugins.visualizations.add({
     }
     this._map = L.map(mapContainer).setView([56.0, 10.5], 10); // Center map
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    // Use Google Maps tile layer
+    L.tileLayer(`https://{s}.google.com/vt/lyrs=${config.mapType}&x={x}&y={y}&z={z}&key=${config.googleMapsApiKey}`, {
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     }).addTo(this._map);
 
     // Process each row of data to create polygons and labels
@@ -119,6 +147,7 @@ function updateLabelFontSize(fontSize) {
       color: black !important;
       font-weight: bold !important;
       font-size: ${fontSize}px !important;
+      text-shadow: none !important;
     }
   `;
   document.getElementsByTagName('head')[0].appendChild(style);
