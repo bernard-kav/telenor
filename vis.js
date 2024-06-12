@@ -113,25 +113,25 @@ looker.plugins.visualizations.add({
       this._map = L.map(mapContainer, {
         preferCanvas: true
       });
+
+      // Use Google Maps tile layer
+      this.tileLayer = L.tileLayer(`https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${config.googleMapsApiKey}`, {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+      });
+
+      this.tileLayer.on('tileerror', function(error) {
+        console.error('Failed to load Google Maps tiles:', error);
+      });
+
+      this.tileLayer.addTo(this._map);
     } else {
       this._map.eachLayer((layer) => {
-        if (layer !== tileLayer) {
+        if (layer !== this.tileLayer) {
           this._map.removeLayer(layer);
         }
       });
     }
-
-    // Use Google Maps tile layer
-    const tileLayer = L.tileLayer(`https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${config.googleMapsApiKey}`, {
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    });
-
-    tileLayer.on('tileerror', function(error) {
-      console.error('Failed to load Google Maps tiles:', error);
-    });
-
-    tileLayer.addTo(this._map);
 
     var bounds = L.latLngBounds();
 
