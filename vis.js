@@ -107,22 +107,19 @@ looker.plugins.visualizations.add({
       return;
     }
 
-    // Preserve map view state
-    var center = [56.0, 10.5];
-    var zoom = 10;
-    if (this._map) {
-      center = this._map.getCenter();
-      zoom = this._map.getZoom();
-      this._map.remove();
-    }
-
-    // Initialize the map
+    // Initialize the map if not already created
     var mapContainer = element.querySelector('#map');
-    this._map = L.map(mapContainer, {
-      center: center,
-      zoom: zoom,
-      preferCanvas: true
-    });
+    if (!this._map) {
+      this._map = L.map(mapContainer, {
+        preferCanvas: true
+      });
+    } else {
+      this._map.eachLayer((layer) => {
+        if (layer !== tileLayer) {
+          this._map.removeLayer(layer);
+        }
+      });
+    }
 
     // Use Google Maps tile layer
     const tileLayer = L.tileLayer(`https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${config.googleMapsApiKey}`, {
@@ -135,6 +132,8 @@ looker.plugins.visualizations.add({
     });
 
     tileLayer.addTo(this._map);
+
+    var bounds = L.latLngBounds();
 
     // Process each row of data to create polygons and labels
     data.forEach(function(row) {
@@ -156,6 +155,8 @@ looker.plugins.visualizations.add({
           opacity: 1,
           pane: 'overlayPane' // Ensure polygons are added to the overlayPane
         }).addTo(this._map);
+
+        bounds.extend(latlngs);
 
         // Add label to the polygon if showLabels is true
         if (config.showLabels && polygonName && polygonName.value) {
@@ -184,6 +185,8 @@ looker.plugins.visualizations.add({
         });
       }
     }, this);
+
+    this._map.fitBounds(bounds);
 
     // Update CSS for label font size
     updateLabelFontSize(config.labelFontSize);
