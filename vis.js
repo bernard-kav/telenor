@@ -107,15 +107,22 @@ looker.plugins.visualizations.add({
       return;
     }
 
-    // Initialize the map
-    var mapContainer = element.querySelector('#map');
+    // Preserve map view state
+    var center = [56.0, 10.5];
+    var zoom = 10;
     if (this._map) {
+      center = this._map.getCenter();
+      zoom = this._map.getZoom();
       this._map.remove();
     }
 
+    // Initialize the map
+    var mapContainer = element.querySelector('#map');
     this._map = L.map(mapContainer, {
+      center: center,
+      zoom: zoom,
       preferCanvas: true
-    }).setView([56.0, 10.5], 10); // Center map
+    });
 
     // Use Google Maps tile layer
     const tileLayer = L.tileLayer(`https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${config.googleMapsApiKey}`, {
