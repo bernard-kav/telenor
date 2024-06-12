@@ -79,23 +79,13 @@ looker.plugins.visualizations.add({
 
     // Load Google Maps library asynchronously
     var googleMapsScript = document.createElement("script");
-    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${config.googleMapsApiKey}`;
+    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${config.googleMapsApiKey}&callback=initMap`;
     googleMapsScript.async = true;
     googleMapsScript.defer = true;
-    googleMapsScript.onload = () => {
-      this._googleMapsLoaded = true;
-      if (this._pendingUpdate) {
-        this.update(this._pendingUpdate.data, this._pendingUpdate.element, this._pendingUpdate.config, this._pendingUpdate.queryResponse, this._pendingUpdate.details);
-        this._pendingUpdate = null;
-      }
-    };
-    googleMapsScript.onerror = () => {
-      console.error("Failed to load Google Maps");
-    };
     document.head.appendChild(googleMapsScript);
   },
   update: function(data, element, config, queryResponse, details) {
-    if (!this._leafletLoaded || !this._googleMapsLoaded) {
+    if (!this._leafletLoaded || !window.google || !window.google.maps) {
       this._pendingUpdate = { data, element, config, queryResponse, details };
       return;
     }
@@ -170,6 +160,12 @@ looker.plugins.visualizations.add({
     updateLabelFontSize(config.labelFontSize);
   }
 });
+
+// Function to initialize the Google Maps
+function initMap() {
+  // Just to ensure Google Maps API is loaded correctly
+  console.log('Google Maps API loaded');
+}
 
 // Function to calculate the centroid of a polygon
 function getCentroid(latlngs) {
