@@ -1,12 +1,36 @@
 view: part00000726b045b5f2d492a949774dfd2b1af49c000 {
+  view_label: "Metrics"
   sql_table_name: `POCCrowedSourceData.part-00000-726b045b-5f2d-492a-9497-74dfd2b1af49-c000` ;;
 
   parameter: calculation {}
 
-  parameter: measure {}
+  parameter: choose_field{
+    type: unquoted
+    allowed_value: {
+      label: "Average Latency"
+      value: "average_latency"
+    }
+    allowed_value: {
+      label: "Average CQI"
+      value: "average_cqi"
+    }
+    allowed_value: {
+      label: "Average RSRQ"
+      value: "average_rsrq"
+    }
+  }
+
+  measure: dynamic_measure {
+    type: average
+    sql: ${TABLE}.{{ choose_field._parameter_value }} ;;
+  }
 
   dimension: average_cqi {
     type: number
+    sql: ${TABLE}.average_cqi ;;
+  }
+  measure: avg_cqi {
+    type: average
     sql: ${TABLE}.average_cqi ;;
   }
   dimension: average_csi_rsrp {

@@ -131,6 +131,7 @@ looker.plugins.visualizations.add({
       // Process polygons
       var polygonData = row['local_area_polygons.ttlocalarea_poly'];
       var polygonName = row['local_area_polygons.ttlocalarea']; // Name of the polygon
+      var polygonFilterValue = row['local_area_polygons.ttlocalarea'].value; // Value to be used for cross-filtering
 
       if (polygonData && polygonData.value) {
         var coordinates = JSON.parse(polygonData.value);
@@ -153,6 +154,15 @@ looker.plugins.visualizations.add({
           // Add hover tooltip
           polygon.bindTooltip(polygonName.value, { sticky: true });
         }
+
+        // Add click event for cross-filtering
+        polygon.on('click', function() {
+          var filter = {
+            field: queryResponse.fields.dimension_like[0].name,
+            value: polygonFilterValue
+          };
+          LookerCharts.Utils.toggleCrossfilter({ filters: [filter] });
+        });
       }
     }, this);
 

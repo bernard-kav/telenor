@@ -10,7 +10,6 @@ view: site_positions {
 
   dimension: location {
     type: location
-
     sql_latitude: ${site_lat} ;;
     sql_longitude: ${site_lon} ;;
   }

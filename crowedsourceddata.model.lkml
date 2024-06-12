@@ -28,7 +28,9 @@ explore: local_area_polygons {
   }
 }
 
-explore: part00000726b045b5f2d492a949774dfd2b1af49c000 {}
+explore: part00000726b045b5f2d492a949774dfd2b1af49c000 {
+  label: "Metrics"
+}
 
 explore: cluster_tags {}
 
