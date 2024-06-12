@@ -113,7 +113,9 @@ looker.plugins.visualizations.add({
       this._map.remove();
     }
 
-    this._map = L.map(mapContainer).setView([56.0, 10.5], 10); // Center map
+    this._map = L.map(mapContainer, {
+      preferCanvas: true
+    }).setView([56.0, 10.5], 10); // Center map
 
     // Use Google Maps tile layer
     const tileLayer = L.tileLayer(`https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${config.googleMapsApiKey}`, {
@@ -144,13 +146,22 @@ looker.plugins.visualizations.add({
           weight: config.polygonLineWidth,
           fillColor: config.polygonColor,
           fillOpacity: config.polygonFillOpacity,
-          opacity: 1
+          opacity: 1,
+          pane: 'overlayPane' // Ensure polygons are added to the overlayPane
         }).addTo(this._map);
 
         // Add label to the polygon if showLabels is true
         if (config.showLabels && polygonName && polygonName.value) {
           var centroid = getCentroid(latlngs);
-          L.marker(centroid, { opacity: 0, interactive: false }).bindTooltip(polygonName.value, { permanent: true, direction: 'center', className: 'polygon-label' }).addTo(this._map);
+          L.marker(centroid, {
+            opacity: 0,
+            interactive: false,
+            pane: 'overlayPane' // Ensure markers are added to the overlayPane
+          }).bindTooltip(polygonName.value, {
+            permanent: true,
+            direction: 'center',
+            className: 'polygon-label'
+          }).addTo(this._map);
 
           // Add hover tooltip
           polygon.bindTooltip(polygonName.value, { sticky: true });
