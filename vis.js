@@ -77,15 +77,26 @@ looker.plugins.visualizations.add({
     leafletStyle.href = "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css";
     document.head.appendChild(leafletStyle);
 
-    // Load Google Maps library asynchronously
-    var googleMapsScript = document.createElement("script");
-    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${config.googleMapsApiKey}&callback=initMap`;
+    // Load Google Maps library asynchronously using importLibrary
+    let googleMapsScript = document.createElement('script');
+    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${config.googleMapsApiKey}&libraries=places`;
     googleMapsScript.async = true;
     googleMapsScript.defer = true;
+    googleMapsScript.onload = async () => {
+      await google.maps.importLibrary("maps");
+      this._googleMapsLoaded = true;
+      if (this._pendingUpdate) {
+        this.update(this._pendingUpdate.data, this._pendingUpdate.element, this._pendingUpdate.config, this._pendingUpdate.queryResponse, this._pendingUpdate.details);
+        this._pendingUpdate = null;
+      }
+    };
+    googleMapsScript.onerror = () => {
+      console.error("Failed to load Google Maps");
+    };
     document.head.appendChild(googleMapsScript);
   },
   update: function(data, element, config, queryResponse, details) {
-    if (!this._leafletLoaded || !window.google || !window.google.maps) {
+    if (!this._leafletLoaded || !this._googleMapsLoaded) {
       this._pendingUpdate = { data, element, config, queryResponse, details };
       return;
     }
