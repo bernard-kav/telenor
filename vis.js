@@ -116,7 +116,6 @@ looker.plugins.visualizations.add({
         return false;
       }
     });
-    const labelColumn = queryResponse.fields.dimensions.find(d => !d.name.includes('poly') && !d.name.includes('geo'));
 
     if (!polygonColumn) {
       console.error("Polygon data column not found");
@@ -155,8 +154,8 @@ looker.plugins.visualizations.add({
     data.forEach(function(row) {
       // Process polygons
       var polygonData = row[polygonColumn.name];
-      var polygonName = labelColumn ? row[labelColumn.name] : null; // Name of the polygon
-      var polygonFilterValue = polygonName ? row[labelColumn.name].value : null; // Value to be used for cross-filtering
+      var polygonName = queryResponse.fields.dimensions.find(d => d.name !== polygonColumn.name).name; // Use the second dimension for labels
+      var polygonFilterValue = row[polygonName].value; // Value to be used for cross-filtering
 
       if (polygonData && polygonData.value) {
         var coordinates = JSON.parse(polygonData.value);
@@ -175,27 +174,27 @@ looker.plugins.visualizations.add({
         bounds.extend(latlngs);
 
         // Add label to the polygon if showLabels is true
-        if (config.showLabels && polygonName && polygonName.value) {
+        if (config.showLabels && row[polygonName] && row[polygonName].value) {
           var centroid = getCentroid(latlngs);
           L.marker(centroid, {
             opacity: 0,
             interactive: false,
             pane: 'overlayPane' // Ensure markers are added to the overlayPane
-          }).bindTooltip(polygonName.value, {
+          }).bindTooltip(row[polygonName].value, {
             permanent: true,
             direction: 'center',
             className: 'polygon-label'
           }).addTo(this._map);
 
           // Add hover tooltip
-          polygon.bindTooltip(polygonName.value, { sticky: true });
+          polygon.bindTooltip(row[polygonName].value, { sticky: true });
         }
 
         // Add click event for cross-filtering
         polygon.on('click', () => {
           if (polygonFilterValue) {
             const filter = {
-              field: queryResponse.fields.dimensions.find(d => !d.name.includes('poly') && !d.name.includes('geo')).name,
+              field: queryResponse.fields.dimensions.find(d => d.name !== polygonColumn.name).name,
               value: polygonFilterValue
             };
             LookerCharts.Utils.toggleCrossfilter({ filters: [filter] });
