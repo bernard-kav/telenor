@@ -116,7 +116,7 @@ looker.plugins.visualizations.add({
         return false;
       }
     });
-    const labelColumn = queryResponse.fields.dimensions.find(d => d.name.includes('label') || d.name.includes('name') || d.name.includes('area'));
+    const labelColumn = queryResponse.fields.dimensions.find(d => !d.name.includes('poly') && !d.name.includes('geo'));
 
     if (!polygonColumn) {
       console.error("Polygon data column not found");
@@ -195,7 +195,7 @@ looker.plugins.visualizations.add({
         polygon.on('click', () => {
           if (polygonFilterValue) {
             const filter = {
-              field: queryResponse.fields.dimension_like[0].name,
+              field: queryResponse.fields.dimensions.find(d => !d.name.includes('poly') && !d.name.includes('geo')).name,
               value: polygonFilterValue
             };
             LookerCharts.Utils.toggleCrossfilter({ filters: [filter] });
