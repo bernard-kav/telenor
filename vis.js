@@ -107,6 +107,22 @@ looker.plugins.visualizations.add({
       return;
     }
 
+    // Dynamically identify the relevant columns
+    const polygonColumn = queryResponse.fields.dimensions.find(d => {
+      try {
+        const sampleValue = JSON.parse(data[0][d.name].value);
+        return Array.isArray(sampleValue) && sampleValue.length > 0 && Array.isArray(sampleValue[0]) && sampleValue[0].length === 2;
+      } catch (e) {
+        return false;
+      }
+    });
+    const labelColumn = queryResponse.fields.dimensions.find(d => d.name.includes('label') || d.name.includes('name') || d.name.includes('area'));
+
+    if (!polygonColumn) {
+      console.error("Polygon data column not found");
+      return;
+    }
+
     // Initialize the map if not already created
     var mapContainer = element.querySelector('#map');
     if (!this._map) {
@@ -138,9 +154,9 @@ looker.plugins.visualizations.add({
     // Process each row of data to create polygons and labels
     data.forEach(function(row) {
       // Process polygons
-      var polygonData = row['local_area_polygons.ttlocalarea_poly'];
-      var polygonName = row['local_area_polygons.ttlocalarea']; // Name of the polygon
-      var polygonFilterValue = row['local_area_polygons.ttlocalarea'].value; // Value to be used for cross-filtering
+      var polygonData = row[polygonColumn.name];
+      var polygonName = labelColumn ? row[labelColumn.name] : null; // Name of the polygon
+      var polygonFilterValue = polygonName ? row[labelColumn.name].value : null; // Value to be used for cross-filtering
 
       if (polygonData && polygonData.value) {
         var coordinates = JSON.parse(polygonData.value);
@@ -164,71 +180,4 @@ looker.plugins.visualizations.add({
           L.marker(centroid, {
             opacity: 0,
             interactive: false,
-            pane: 'overlayPane' // Ensure markers are added to the overlayPane
-          }).bindTooltip(polygonName.value, {
-            permanent: true,
-            direction: 'center',
-            className: 'polygon-label'
-          }).addTo(this._map);
-
-          // Add hover tooltip
-          polygon.bindTooltip(polygonName.value, { sticky: true });
-        }
-
-        // Add click event for cross-filtering
-        polygon.on('click', () => {
-          const filter = {
-            field: queryResponse.fields.dimension_like[0].name,
-            value: polygonFilterValue
-          };
-          LookerCharts.Utils.toggleCrossfilter({ filters: [filter] });
-        });
-      }
-    }, this);
-
-    this._map.fitBounds(bounds);
-
-    // Update CSS for label font size
-    updateLabelFontSize(config.labelFontSize);
-  }
-});
-
-// Function to initialize the Google Maps
-function initMap() {
-  // Just to ensure Google Maps API is loaded correctly
-  console.log('Google Maps API loaded');
-}
-
-// Function to calculate the centroid of a polygon
-function getCentroid(latlngs) {
-  var latSum = 0;
-  var lngSum = 0;
-  latlngs.forEach(function(latlng) {
-    latSum += latlng[0];
-    lngSum += latlng[1];
-  });
-  return [latSum / latlngs.length, lngSum / latlngs.length];
-}
-
-// Function to update the CSS for label font size
-function updateLabelFontSize(fontSize) {
-  const existingStyle = document.getElementById('polygon-label-style');
-  if (existingStyle) {
-    existingStyle.remove();
-  }
-
-  const style = document.createElement('style');
-  style.id = 'polygon-label-style';
-  style.type = 'text/css';
-  style.innerHTML = `
-    .polygon-label {
-      background: none !important;
-      border: none !important;
-      color: black !important;
-      font-weight: bold !important;
-      font-size: ${fontSize}px !important;
-      text-shadow: none !important;
-    }
-  `;
-  document.getElementsByTagName('head')[0].appendChild(style);
-}
+            pane: 'overlayPane' // Ensure markers are added to the
