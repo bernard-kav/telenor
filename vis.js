@@ -107,6 +107,22 @@ looker.plugins.visualizations.add({
       return;
     }
 
+    // Dynamically identify the relevant columns
+    const polygonColumn = queryResponse.fields.dimensions.find(d => {
+      try {
+        const sampleValue = JSON.parse(data[0][d.name].value);
+        return Array.isArray(sampleValue) && sampleValue.length > 0 && Array.isArray(sampleValue[0]) && sampleValue[0].length === 2;
+      } catch (e) {
+        return false;
+      }
+    });
+    const labelColumn = queryResponse.fields.dimensions.find(d => d.name.includes('label') || d.name.includes('name') || d.name.includes('area'));
+
+    if (!polygonColumn) {
+      console.error("Polygon data column not found");
+      return;
+    }
+
     // Initialize the map if not already created
     var mapContainer = element.querySelector('#map');
     if (!this._map) {
@@ -138,9 +154,9 @@ looker.plugins.visualizations.add({
     // Process each row of data to create polygons and labels
     data.forEach(function(row) {
       // Process polygons
-      var polygonData = row['local_area_polygons.ttlocalarea_poly'];
-      var polygonName = row['local_area_polygons.ttlocalarea']; // Name of the polygon
-      var polygonFilterValue = row['local_area_polygons.ttlocalarea'].value; // Value to be used for cross-filtering
+      var polygonData = row[polygonColumn.name];
+      var polygonName = labelColumn ? row[labelColumn.name] : null; // Name of the polygon
+      var polygonFilterValue = polygonName ? row[labelColumn.name].value : null; // Value to be used for cross-filtering
 
       if (polygonData && polygonData.value) {
         var coordinates = JSON.parse(polygonData.value);
@@ -177,11 +193,13 @@ looker.plugins.visualizations.add({
 
         // Add click event for cross-filtering
         polygon.on('click', () => {
-          const filter = {
-            field: queryResponse.fields.dimension_like[0].name,
-            value: polygonFilterValue
-          };
-          LookerCharts.Utils.toggleCrossfilter({ filters: [filter] });
+          if (polygonFilterValue) {
+            const filter = {
+              field: queryResponse.fields.dimension_like[0].name,
+              value: polygonFilterValue
+            };
+            LookerCharts.Utils.toggleCrossfilter({ filters: [filter] });
+          }
         });
       }
     }, this);
