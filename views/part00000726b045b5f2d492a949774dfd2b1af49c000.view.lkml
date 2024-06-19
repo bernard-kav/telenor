@@ -1,6 +1,6 @@
 view: part00000726b045b5f2d492a949774dfd2b1af49c000 {
   view_label: "Metrics"
-  sql_table_name: `POCCrowedSourceData.part-00000-726b045b-5f2d-492a-9497-74dfd2b1af49-c000` ;;
+  sql_table_name: `POCCrowedSourceData.part-00000-726b045b-5f2d-492a-9497-74dfd2b1af49-c000_partition_view`  ;;
 
   parameter: calculation {}
 
@@ -24,6 +24,7 @@ view: part00000726b045b5f2d492a949774dfd2b1af49c000 {
     type: average
     sql: ${TABLE}.{{ choose_field._parameter_value }} ;;
   }
+
 
   dimension: average_cqi {
     type: number
@@ -236,6 +237,10 @@ view: part00000726b045b5f2d492a949774dfd2b1af49c000 {
   dimension: location_city {
     type: string
     sql: ${TABLE}.location_city ;;
+  }
+  dimension: top_city_label {
+    type: string
+    sql: ${TABLE}.city_label ;;
   }
   dimension: location_country {
     type: string
@@ -986,6 +991,11 @@ view: part00000726b045b5f2d492a949774dfd2b1af49c000 {
   }
   dimension: week_partition_key {
     type: number
+    sql: ${TABLE}.week_partition_key ;;
+  }
+  filter: week_partition_filter {
+    type: string
+    suggest_dimension: week_partition_key
     sql: ${TABLE}.week_partition_key ;;
   }
   measure: count {

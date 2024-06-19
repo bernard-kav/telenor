@@ -1,33 +1,31 @@
 view: site_positions {
-  sql_table_name: `POCCrowedSourceData.sites` ;;
-  drill_fields: [site_id]
+  sql_table_name: `sandbox-tndk-analytics-thoy.POCCrowedSourceData.site_positions` ;;
 
   dimension: site_id {
-    primary_key: yes
     type: string
     sql: ${TABLE}.site_id ;;
   }
-
-  dimension: location {
-    type: location
-    sql_latitude: ${site_lat} ;;
-    sql_longitude: ${site_lon} ;;
-  }
   dimension: site_lat {
-    type: number
+    type: string
     sql: ${TABLE}.site_lat ;;
   }
   dimension: site_lon {
-    type: number
+    type: string
     sql: ${TABLE}.site_lon ;;
   }
+  dimension: location {
+    type: location
+    sql: CONCAT(${TABLE}.site_lat, ',', ${TABLE}.site_lon) ;;
+  }
+  dimension: ttlocalarea {
+    type: string
+    sql: ${TABLE}.ttlocalarea ;;
+  }
   dimension: ttlocalarea_new {
-    map_layer_name: denmark_counties
     type: string
     sql: ${TABLE}.ttlocalarea_new ;;
   }
   measure: count {
     type: count
-    drill_fields: [site_id]
   }
 }

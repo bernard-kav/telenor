@@ -233,19 +233,14 @@ looker.plugins.visualizations.add({
 
         // Add click event for cross-filtering
         polygon.on('click', () => {
-      if (polygonFilterValue) {
-        // Trigger the drill-down action
-        details.crossfilter.addFilter({
-          field: labelColumn.name,
-          value: polygonFilterValue,
+          if (polygonFilterValue) {
+            const filter = {
+              field: labelColumn.name,
+              value: polygonFilterValue
+            };
+            LookerCharts.Utils.toggleCrossfilter({ filters: [filter] });
+          }
         });
-
-        // Call the onCrossfilter method to signal Looker
-        if (this.trigger && this.trigger("crossfilter", details.crossfilter)) {
-          return;
-        }
-      }
-    });
       }
     }, this);
 

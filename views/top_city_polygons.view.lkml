@@ -1,5 +1,5 @@
 view: top_city_polygons {
-  sql_table_name: `POCCrowedSourceData.TopCityPolygons` ;;
+  sql_table_name: `POCCrowedSourceData.TopCityPolygons_view` ;;
 
   dimension: city_label {
     type: string
