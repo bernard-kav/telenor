@@ -2,6 +2,7 @@ view: site_positions {
   sql_table_name: `sandbox-tndk-analytics-thoy.POCCrowedSourceData.site_positions` ;;
 
   dimension: site_id {
+    primary_key: yes
     type: string
     sql: ${TABLE}.site_id ;;
   }

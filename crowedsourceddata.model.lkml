@@ -30,6 +30,13 @@ explore: local_area_polygons {
     relationship: one_to_many
     sql_on: ${local_area_polygons.ttlocalarea}=${part00000726b045b5f2d492a949774dfd2b1af49c000.pot3cluster} ;;
   }
+  join: top_city_polygons {
+    relationship: one_to_many
+    sql_on: ${part00000726b045b5f2d492a949774dfd2b1af49c000.top_city_label} = ${top_city_polygons.city_label} ;;
+    # Optional: alias for easier reference
+    view_label: "Top City Polygons"
+  }
+
 }
 
 explore: part00000726b045b5f2d492a949774dfd2b1af49c000 {
